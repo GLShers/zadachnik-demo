@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Задачник</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+/* Цвета берём из темы Telegram (--tg-theme-*), запасные на случай открытия в браузере */
+:root{
+  --bg:var(--tg-theme-secondary-bg-color,#EFEFF4);
+  --section:var(--tg-theme-section-bg-color,var(--tg-theme-bg-color,#FFFFFF));
+  --text:var(--tg-theme-text-color,#000000);
+  --hint:var(--tg-theme-hint-color,#8E8E93);
+  --link:var(--tg-theme-link-color,#2481CC);
+  --accent:var(--tg-theme-button-color,#2481CC);
+  --on-accent:var(--tg-theme-button-text-color,#FFFFFF);
+  --header:var(--tg-theme-section-header-text-color,#6D6D72);
+  --danger:var(--tg-theme-destructive-text-color,#E53935);
+  --sep:color-mix(in srgb,var(--hint) 25%,transparent);
+  --soft:color-mix(in srgb,var(--accent) 12%,transparent);
+  --warn:#E08A00;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:var(--tg-theme-secondary-bg-color,#1C1C1D);
+  --section:var(--tg-theme-section-bg-color,var(--tg-theme-bg-color,#2C2C2E));
+  --text:var(--tg-theme-text-color,#FFFFFF);
+  --hint:var(--tg-theme-hint-color,#98989E);
+  --link:var(--tg-theme-link-color,#3E88F7);
+  --accent:var(--tg-theme-button-color,#3E88F7);
+  --header:var(--tg-theme-section-header-text-color,#8D8E93);
+  --danger:var(--tg-theme-destructive-text-color,#FF453A);
+  --warn:#FFB340;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 -apple-system,system-ui,'Segoe UI',Roboto,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+main{padding:12px 12px 96px;max-width:560px;margin:0 auto}
+
+/* имитация шапки и большой кнопки Telegram, видна только при открытии в обычном браузере */
+.tgbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--section);border-bottom:1px solid var(--sep)}
+.tgbar .close{color:var(--link);background:none;border:0;padding:0;min-width:64px;text-align:left}
+.tgbar b{flex:1;text-align:center;font-weight:600}
+.tgbar small{display:block;font-weight:400;color:var(--hint);font-size:12px}
+.tgbar .sp{min-width:64px}
+.fakemain{position:fixed;left:0;right:0;bottom:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:var(--section);border-top:1px solid var(--sep);z-index:5}
+.fakemain button{width:100%;max-width:536px;display:block;margin:0 auto;border:0;border-radius:10px;padding:13px;background:var(--accent);color:var(--on-accent);font-weight:600}
+
+.hello{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 4px 12px}
+.hello h1{font-size:22px;margin:0;font-weight:700}
+.seg{display:inline-flex;background:var(--section);border-radius:9px;padding:2px}
+.seg button{border:0;background:none;padding:5px 12px;border-radius:7px;color:var(--hint);font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+
+.alerts{display:flex;gap:8px;margin:0 0 12px;overflow-x:auto}
+.alert{flex:none;border:0;border-radius:12px;padding:8px 12px;background:var(--section);text-align:left}
+.alert b{display:block;font-size:20px;line-height:1.1}
+.alert span{font-size:12.5px;color:var(--hint)}
+.alert.bad b{color:var(--danger)}
+.alert.warn b{color:var(--warn)}
+.alert[aria-pressed="true"]{outline:2px solid var(--accent)}
+
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:0 -12px 10px;padding:0 12px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;border:0;border-radius:18px;padding:7px 14px;background:var(--section);color:var(--text);font-size:14px}
+.tabs button span{color:var(--hint);margin-left:4px}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--on-accent)}
+.tabs button[aria-selected="true"] span{color:var(--on-accent);opacity:.8}
+
+.list{background:var(--section);border-radius:12px;overflow:hidden}
+.item{display:flex;gap:10px;width:100%;border:0;background:none;text-align:left;padding:11px 14px;position:relative}
+.item+.item::before{content:"";position:absolute;top:0;left:14px;right:0;border-top:1px solid var(--sep)}
+.item .dot{width:8px;height:8px;border-radius:50%;margin-top:7px;flex:none;background:transparent}
+.item .dot.bad{background:var(--danger)}
+.item .dot.warn{background:var(--warn)}
+.item .body{flex:1;min-width:0}
+.item .t{font-weight:500}
+.item .m{font-size:13px;color:var(--hint);margin-top:2px}
+.item .m .bad{color:var(--danger)}
+.item .m .warn{color:var(--warn)}
+.item .chev{color:var(--hint);align-self:center;font-size:18px}
+.empty{padding:28px 14px;text-align:center;color:var(--hint)}
+.cap{font-size:13px;color:var(--header);text-transform:uppercase;letter-spacing:.02em;margin:18px 16px 6px}
+.foot{font-size:13px;color:var(--hint);margin:8px 16px 0}
+
+/* карточка задачи */
+.dtitle{font-size:20px;font-weight:700;margin:4px 4px 4px;line-height:1.3}
+.dsub{color:var(--hint);margin:0 4px 6px;font-size:14px}
+.rows{background:var(--section);border-radius:12px;overflow:hidden}
+.row{display:flex;justify-content:space-between;gap:12px;padding:11px 14px;position:relative;align-items:center}
+.row+.row::before{content:"";position:absolute;top:0;left:14px;right:0;border-top:1px solid var(--sep)}
+.row .k{color:var(--text)}
+.row .v{color:var(--hint);text-align:right;min-width:0}
+.row input,.row select{border:0;background:none;color:var(--link);text-align:right;padding:0;min-width:0}
+.quote{background:var(--section);border-radius:12px;padding:11px 14px;font-size:14px}
+.quote i{display:block;font-style:normal;border-left:3px solid var(--accent);padding-left:8px}
+.quote small{display:block;color:var(--hint);margin-top:6px}
+.status{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.status button{border:0;border-radius:12px;padding:12px;background:var(--section);text-align:left}
+.status button small{display:block;color:var(--hint);font-size:12.5px}
+.status button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.status button[aria-pressed="true"] small{color:var(--on-accent);opacity:.8}
+.actions{background:var(--section);border-radius:12px;overflow:hidden}
+.actions button{display:block;width:100%;border:0;background:none;text-align:left;padding:12px 14px;color:var(--link);position:relative}
+.actions button+button::before{content:"";position:absolute;top:0;left:14px;right:0;border-top:1px solid var(--sep)}
+.actions .del{color:var(--danger)}
+.hist{background:var(--section);border-radius:12px;padding:6px 14px}
+.hist div{padding:6px 0;font-size:14px;display:flex;justify-content:space-between;gap:10px}
+.hist span{color:var(--hint);flex:none;font-variant-numeric:tabular-nums}
+
+.field{background:var(--section);border-radius:12px;overflow:hidden}
+.field textarea{display:block;width:100%;border:0;background:none;padding:12px 14px;min-height:84px;resize:none;outline:none}
+
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:rgba(30,30,30,.92);color:#fff;padding:9px 14px;border-radius:10px;font-size:14px;z-index:9;max-width:90vw}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="tgbar" id="tgbar" hidden>
+  <button class="close" id="fakeback" type="button">Закрыть</button>
+  <b>Задачник<small>мини-приложение</small></b>
+  <span class="sp"></span>
+</div>
+
+<main>
+  <section id="v-list">
+    <div class="hello">
+      <h1 id="hello">Задачи</h1>
+      <div class="seg" id="scope">
+        <button type="button" data-scope="mine" aria-pressed="true">Мои</button>
+        <button type="button" data-scope="all" aria-pressed="false">Все</button>
+      </div>
+    </div>
+    <div class="alerts" id="alerts"></div>
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <div class="list" id="list"></div>
+    <p class="foot" id="foot"></p>
+    <div class="cap">Демо</div>
+    <div class="actions">
+      <button type="button" id="whoami"></button>
+      <button type="button" id="reset" class="del">Сбросить демо-данные</button>
+    </div>
+  </section>
+
+  <section id="v-task" hidden></section>
+  <section id="v-add" hidden>
+    <div class="dtitle">Новая задача</div>
+    <div class="cap">Что сделать</div>
+    <div class="field"><textarea id="a-title" placeholder="Например: отправить медиакит"></textarea></div>
+    <div class="cap">Подробности</div>
+    <div class="rows">
+      <label class="row"><span class="k">Агентство</span><input id="a-agency" placeholder="не указано"></label>
+      <label class="row"><span class="k">Кто делает</span><select id="a-who"><option>Саша</option><option>Мария</option></select></label>
+      <label class="row"><span class="k">Срок</span><input id="a-due" type="date"></label>
+    </div>
+  </section>
+</main>
+<div class="fakemain" id="fakemain" hidden><button type="button" id="fakemainbtn"></button></div>
+
+<script>
+const tg=window.Telegram&&window.Telegram.WebApp;
+const inTG=!!(tg&&tg.initData);
+if(tg){tg.ready();tg.expand&&tg.expand()}
+
+const KEY='zadachnik-miniapp-v1';
+const DAY=864e5;
+const COLS=[{id:'new',name:'Новые'},{id:'work',name:'В работе'},{id:'wait',name:'Ждём клиента'},{id:'done',name:'Готово'}];
+const COLNAME=Object.fromEntries(COLS.map(c=>[c.id,c.name]));
+const HINT={new:'ещё не начата',work:'делаю',wait:'ход за клиентом',done:'закрыта'};
+const RULES={new:3,work:7,wait:5};
+const MON=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+const DOW=['вс','пн','вт','ср','чт','пт','сб'];
+function sod(t){const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()}
+function addDays(t,n){const d=new Date(t);d.setDate(d.getDate()+n);return d.getTime()}
+const TODAY=sod(Date.now());
+function days(a,b=Date.now()){return Math.round((sod(b)-sod(a))/DAY)}
+function nextDow(w){const g=new Date(TODAY).getDay();let a=(w-g+7)%7;if(!a)a=7;return addDays(TODAY,a)}
+function fmtDay(t){const d=new Date(t);return d.getDate()+' '+MON[d.getMonth()]+', '+DOW[d.getDay()]}
+function fmtShort(t){const d=new Date(t);return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')}
+function hhmm(t){const d=new Date(t);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+function pl(n,a,b,c){const m=n%10,h=n%100;return n+' '+(m===1&&h!==11?a:(m>=2&&m<=4&&(h<12||h>14)?b:c))}
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+let n0=0;const uid=()=>'t'+Date.now().toString(36)+(n0++);
+function isoDay(t){if(!t)return '';const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function fromIso(v){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v||'');return m?new Date(+m[1],+m[2]-1,+m[3]).getTime():null}
+
+function seed(){
+  const at=n=>addDays(TODAY,n)+11*3600e3;
+  const s=(o)=>{const t=Object.assign({id:uid(),who:'Саша',agency:'',due:null,quote:'',src:''},o);t.hist=[{at:t.created,text:'Поставлена, '+t.src},...(t.col!=='new'?[{at:t.moved,text:'→ '+COLNAME[t.col]}]:[])];return t};
+  return [
+    s({title:'Отправить медиакит на ноябрь с новыми охватами',agency:'Агентство 777',col:'new',created:at(0),moved:at(0),due:nextDow(3),src:'из чата '+fmtShort(at(0)),quote:'777 просили медиакит на ноябрь с новыми охватами. Отправь им до среды плиз'}),
+    s({title:'Напомнить про оплату за октябрь. Если до пятницы тишина, сказать Марии',agency:'Пиксель Медиа',col:'new',created:at(0),moved:at(0),due:nextDow(5),src:'из чата '+fmtShort(at(0)),quote:'Пиксель Медиа до сих пор не оплатили октябрь. Напомни им'}),
+    s({title:'Скинуть Саше охваты по автоканалам',who:'Мария',col:'new',created:at(0),moved:at(0),src:'из чата '+fmtShort(at(0)),quote:'Только охваты по автоканалам мне скинь, у меня старые'}),
+    s({title:'Собрать отзывы агентств о новом прайсе',col:'new',created:at(-8),moved:at(-8),src:'из чата '+fmtShort(at(-8)),quote:'Поспрашивай у агентств, как им новый прайс, только аккуратно'}),
+    s({title:'Выставить счёт за октябрьские размещения',agency:'Ромашка Ads',col:'work',created:at(-6),moved:at(-3),due:addDays(TODAY,-1),src:'из чата '+fmtShort(at(-6)),quote:'Ромашке счёт до понедельника, они просили'}),
+    s({title:'Обновить презентацию для агентств: новые охваты',col:'work',created:at(-12),moved:at(-9),src:'созвон '+fmtShort(at(-12)),quote:'Презентацию надо освежить, там охваты ещё летние'}),
+    s({title:'Подобрать каналы про авто под весеннюю кампанию',agency:'Атлас',col:'work',created:at(-2),moved:at(-1),due:addDays(TODAY,3),src:'из чата '+fmtShort(at(-2)),quote:'Атласу нужна подборка автоканалов'}),
+    s({title:'Согласовать скидку на пакет из 20 постов',agency:'Медиаволна',col:'wait',created:at(-9),moved:at(-6),src:'созвон '+fmtShort(at(-9)),quote:'Медиаволна хочет двадцать постов, предложи им скидку'}),
+    s({title:'Отправить медиакит на октябрь',agency:'Атлас',col:'done',created:at(-8),moved:at(-2),src:'из чата '+fmtShort(at(-8))}),
+    s({title:'Позвать агентства на вебинар про новые каналы',who:'Мария',col:'done',created:at(-8),moved:at(-4),src:'созвон '+fmtShort(at(-8))}),
+  ];
+}
+function fresh(){return {tasks:seed(),me:'Саша',scope:'mine',tab:'new',flag:null}}
+let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!Array.isArray(S.tasks))S=fresh();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+/* состояние задачи: просрочена, застряла */
+function problem(t){
+  if(t.col==='done')return null;
+  if(t.due&&t.col!=='wait'&&days(TODAY,t.due)<0)return {cls:'bad',kind:'over',text:'срок прошёл '+(days(TODAY,t.due)===-1?'вчера':pl(-days(TODAY,t.due),'день','дня','дней')+' назад')};
+  if(t.col==='new'&&days(t.created)>=RULES.new)return {cls:'warn',kind:'stuck',text:'не начата '+pl(days(t.created),'день','дня','дней')};
+  if(t.col==='work'&&days(t.moved)>=RULES.work)return {cls:'warn',kind:'stuck',text:'без движения '+pl(days(t.moved),'день','дня','дней')};
+  if(t.col==='wait'&&days(t.moved)>=RULES.wait)return {cls:'warn',kind:'stuck',text:'ждём '+pl(days(t.moved),'день','дня','дней')};
+  return null;
+}
+function dueText(t){
+  if(t.col==='done')return 'сделано '+fmtDay(t.moved);
+  if(!t.due)return '';
+  const n=days(TODAY,t.due);
+  if(n===0)return 'срок сегодня';if(n===1)return 'срок завтра';
+  return n>0?'до '+fmtDay(t.due):'';
+}
+
+/* кнопки Telegram: настоящие внутри Telegram, имитация в браузере */
+let mainFn=null,backFn=null;
+function mainButton(text,fn){
+  if(inTG){
+    if(mainFn)tg.MainButton.offClick(mainFn);
+    mainFn=fn;
+    if(!text){tg.MainButton.hide();return}
+    tg.MainButton.setText(text);tg.MainButton.onClick(fn);tg.MainButton.show();
+  } else {
+    mainFn=fn;
+    document.getElementById('fakemain').hidden=!text;
+    document.getElementById('fakemainbtn').textContent=text||'';
+  }
+}
+function backButton(fn){
+  backFn=fn;
+  if(inTG){if(fn)tg.BackButton.show();else tg.BackButton.hide()}
+  else document.getElementById('fakeback').textContent=fn?'‹ Назад':'Закрыть';
+}
+if(inTG)tg.BackButton.onClick(()=>backFn&&backFn());
+else{
+  document.getElementById('tgbar').hidden=false;
+  document.getElementById('fakemainbtn').addEventListener('click',()=>mainFn&&mainFn());
+  document.getElementById('fakeback').addEventListener('click',()=>{if(backFn)backFn();else toast('В Telegram здесь окно закроется')});
+}
+function haptic(kind){try{if(!tg||!tg.HapticFeedback)return;kind==='ok'?tg.HapticFeedback.notificationOccurred('success'):tg.HapticFeedback.impactOccurred('light')}catch(e){}}
+let toastT;function toast(text){let el=document.querySelector('.toast');if(!el){el=document.createElement('div');el.className='toast';document.body.append(el)}el.textContent=text;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,1800)}
+
+function show(v){['list','task','add'].forEach(x=>document.getElementById('v-'+x).hidden=x!==v);window.scrollTo(0,0)}
+
+/* список */
+function visible(){return S.tasks.filter(t=>S.scope==='all'||t.who===S.me)}
+function renderList(){
+  const tgName=inTG&&tg.initDataUnsafe&&tg.initDataUnsafe.user?tg.initDataUnsafe.user.first_name:'';
+  document.getElementById('hello').textContent=S.scope==='mine'?(tgName||S.me)+', твои задачи':'Все задачи';
+  document.querySelectorAll('#scope button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.scope===S.scope)));
+  const vis=visible();
+  const over=vis.filter(t=>problem(t)?.kind==='over').length;
+  const stuck=vis.filter(t=>problem(t)?.kind==='stuck').length;
+  const today=vis.filter(t=>t.col!=='done'&&t.due&&days(TODAY,t.due)===0).length;
+  document.getElementById('alerts').innerHTML=
+    `<button type="button" class="alert bad" data-flag="over" aria-pressed="${S.flag==='over'}"><b>${over}</b><span>просрочено</span></button>`+
+    `<button type="button" class="alert warn" data-flag="stuck" aria-pressed="${S.flag==='stuck'}"><b>${stuck}</b><span>застряло</span></button>`+
+    `<button type="button" class="alert" data-flag="active" aria-pressed="${S.flag==='active'}"><b>${vis.filter(t=>t.col!=='done').length}</b><span>всего открыто</span></button>`+
+    (today?`<button type="button" class="alert" disabled><b>${today}</b><span>на сегодня</span></button>`:'');
+  document.getElementById('tabs').innerHTML=COLS.map(c=>`<button type="button" role="tab" data-tab="${c.id}" aria-selected="${!S.flag&&S.tab===c.id}">${c.name}<span>${vis.filter(t=>t.col===c.id).length}</span></button>`).join('');
+  let items;
+  if(S.flag==='over')items=vis.filter(t=>problem(t)?.kind==='over');
+  else if(S.flag==='stuck')items=vis.filter(t=>problem(t)?.kind==='stuck');
+  else if(S.flag==='active')items=vis.filter(t=>t.col!=='done');
+  else items=vis.filter(t=>t.col===S.tab);
+  items.sort((a,b)=>(problem(b)?1:0)-(problem(a)?1:0)||(a.due||9e15)-(b.due||9e15));
+  document.getElementById('list').innerHTML=items.map(t=>{
+    const p=problem(t);
+    const meta=[t.agency,S.scope==='all'?t.who:'',S.flag?COLNAME[t.col]:''].filter(Boolean).map(esc);
+    const d=dueText(t);if(d)meta.push(esc(d));
+    if(p)meta.push(`<span class="${p.cls}">${esc(p.text)}</span>`);
+    return `<button type="button" class="item" data-id="${t.id}"><span class="dot ${p?p.cls:''}"></span><span class="body"><div class="t">${esc(t.title)}</div><div class="m">${meta.join(' · ')}</div></span><span class="chev">›</span></button>`;
+  }).join('')||`<div class="empty">${S.flag?'Таких задач нет':'Пусто'}</div>`;
+  document.getElementById('foot').textContent=S.flag?'Нажми на плашку ещё раз, чтобы вернуться к колонкам':'Задачи сюда попадают сами из общего чата. Нажми на задачу, чтобы поменять статус';
+  document.getElementById('whoami').textContent='Смотрю как '+(S.me==='Саша'?'Саша, переключить на Марию':'Мария, переключить на Сашу');
+  mainButton('Новая задача',openAdd);
+  backButton(null);
+}
+
+/* карточка задачи */
+let cur=null;
+function openTask(id){
+  cur=S.tasks.find(t=>t.id===id);if(!cur)return;
+  renderTask();show('task');
+  backButton(()=>{renderList();show('list')});
+}
+function renderTask(){
+  const t=cur,p=problem(t);
+  document.getElementById('v-task').innerHTML=`
+    <div class="dtitle">${esc(t.title)}</div>
+    <div class="dsub">${esc(COLNAME[t.col])}${p?` · <span style="color:var(--${p.cls==='bad'?'danger':'warn'})">${esc(p.text)}</span>`:''}</div>
+    <div class="cap">Статус</div>
+    <div class="status">${COLS.map(c=>`<button type="button" data-col="${c.id}" aria-pressed="${t.col===c.id}">${c.name}<small>${HINT[c.id]}</small></button>`).join('')}</div>
+    <div class="cap">Подробности</div>
+    <div class="rows">
+      <div class="row"><span class="k">Агентство</span><span class="v">${esc(t.agency||'не указано')}</span></div>
+      <label class="row"><span class="k">Кто делает</span><select id="d-who"><option${t.who==='Саша'?' selected':''}>Саша</option><option${t.who==='Мария'?' selected':''}>Мария</option></select></label>
+      <label class="row"><span class="k">Срок</span><input type="date" id="d-due" value="${isoDay(t.due)}"></label>
+    </div>
+    ${t.quote||t.src?`<div class="cap">Откуда задача</div><div class="quote">${t.quote?`<i>${esc(t.quote)}</i>`:''}<small>${esc(t.src)}</small></div>`:''}
+    <div class="cap">Действия</div>
+    <div class="actions">
+      <button type="button" id="d-plus">Сдвинуть срок на 3 дня</button>
+      <button type="button" id="d-ping">Напомнить ${t.who==='Саша'?'Саше':'Марии'} в личку</button>
+      <button type="button" id="d-del" class="del">Удалить задачу</button>
+    </div>
+    <div class="cap">История</div>
+    <div class="hist">${(t.hist||[]).slice().reverse().map(h=>`<div>${esc(h.text)}<span>${fmtShort(h.at)} ${hhmm(h.at)}</span></div>`).join('')}</div>`;
+  mainButton(t.col==='done'?'':'Сделано',()=>setCol('done'));
+}
+function setCol(col){
+  if(!cur||cur.col===col)return;
+  cur.col=col;cur.moved=Date.now();cur.hist=(cur.hist||[]).concat({at:Date.now(),text:'→ '+COLNAME[col]+', '+S.me});
+  save();haptic('ok');
+  if(col==='done'){toast('Готово, задача закрыта');renderList();show('list');return}
+  toast('Перенесено в «'+COLNAME[col]+'»');renderTask();
+}
+document.getElementById('v-task').addEventListener('click',e=>{
+  const b=e.target.closest('[data-col]');if(b){setCol(b.dataset.col);return}
+  if(e.target.id==='d-plus'){const base=cur.due&&cur.due>TODAY?cur.due:TODAY;cur.due=addDays(base,3);cur.hist.push({at:Date.now(),text:'Срок → '+fmtDay(cur.due)});save();haptic();toast('Новый срок '+fmtDay(cur.due));renderTask()}
+  if(e.target.id==='d-ping'){haptic();toast('В настоящем боте сюда уйдёт напоминание')}
+  if(e.target.id==='d-del'){
+    const go=()=>{S.tasks=S.tasks.filter(x=>x!==cur);save();renderList();show('list');toast('Задача удалена')};
+    if(inTG&&tg.showConfirm)tg.showConfirm('Удалить задачу?',ok=>ok&&go());else go();
+  }
+});
+document.getElementById('v-task').addEventListener('change',e=>{
+  if(e.target.id==='d-who'){cur.who=e.target.value;cur.hist.push({at:Date.now(),text:'Исполнитель → '+cur.who})}
+  if(e.target.id==='d-due'){cur.due=fromIso(e.target.value);cur.hist.push({at:Date.now(),text:cur.due?'Срок → '+fmtDay(cur.due):'Срок убран'})}
+  save();renderTask();
+});
+
+/* новая задача */
+function openAdd(){
+  ['a-title','a-agency','a-due'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('a-who').value=S.me==='Мария'?'Саша':S.me;
+  show('add');
+  backButton(()=>{renderList();show('list')});
+  mainButton('Добавить',()=>{
+    const title=document.getElementById('a-title').value.trim();
+    if(!title){toast('Напиши, что сделать');return}
+    const now=Date.now();
+    S.tasks.unshift({id:uid(),title,agency:document.getElementById('a-agency').value.trim(),who:document.getElementById('a-who').value,due:fromIso(document.getElementById('a-due').value),quote:'',src:'добавлена вручную',col:'new',created:now,moved:now,hist:[{at:now,text:'Добавлена вручную, '+S.me}]});
+    S.tab='new';S.flag=null;save();haptic('ok');renderList();show('list');toast('Задача добавлена');
+  });
+  setTimeout(()=>document.getElementById('a-title').focus(),50);
+}
+
+/* события списка */
+document.getElementById('v-list').addEventListener('click',e=>{
+  const it=e.target.closest('.item');if(it){haptic();openTask(it.dataset.id);return}
+  const tb=e.target.closest('[data-tab]');if(tb){S.tab=tb.dataset.tab;S.flag=null;save();haptic();renderList();return}
+  const fl=e.target.closest('[data-flag]');if(fl){S.flag=S.flag===fl.dataset.flag?null:fl.dataset.flag;save();haptic();renderList();return}
+  const sc=e.target.closest('[data-scope]');if(sc){S.scope=sc.dataset.scope;save();haptic();renderList();return}
+  if(e.target.id==='whoami'){S.me=S.me==='Саша'?'Мария':'Саша';S.scope=S.me==='Мария'?'all':'mine';save();renderList();return}
+  if(e.target.id==='reset'){S=fresh();save();renderList();toast('Демо-данные сброшены')}
+});
+
+renderList();show('list');
+</script>
+</body>
+</html>
